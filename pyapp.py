@@ -609,7 +609,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
         pdf.multi_cell(text_w, 4, t["task"])
         y += h + 2
 
-    return pdf.output()
+    return bytes(pdf.output())
 
 
 # --- APP LOGIC ---
