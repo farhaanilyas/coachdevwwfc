@@ -1,6 +1,4 @@
 import streamlit as st
-import io
-import base64
 from fpdf import FPDF
 from datetime import datetime
 
@@ -14,8 +12,6 @@ st.set_page_config(
 
 WOLVES_GOLD = "#FDB913"
 WOLVES_BLACK = "#231F20"
-WOLVES_DARK = "#1a1714"
-WOLVES_CARD = "#2a2520"
 
 PILLARS = [
     {
@@ -181,7 +177,7 @@ TOOLBOX_TASKS = {
         "In a 6-week period, journal your touchline behaviours and feedback to HoC or phase lead coach",
         "Within the 6-week block, arrange to collect and review player voice feedback with the intention of selecting your next development goal",
         "Within a 6-week block plan, deliver and review a competency-based workshop",
-        "For 6-weeks, casually use 'what\'s the score' with players to gauge mood and attitude to learning before training begins",
+        "For 6-weeks, casually use 'what's the score' with players to gauge mood and attitude to learning before training begins",
     ],
 }
 
@@ -224,14 +220,8 @@ def hex_to_rgb(hex_color):
 st.markdown(
     """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
-    .stApp {
-        background: linear-gradient(160deg, #1a1714 0%, #0d0b09 100%);
-        font-family: 'DM Sans', sans-serif;
-    }
-
-    /* Header */
     .wolves-header {
         text-align: center;
         padding: 2rem 0 1rem;
@@ -241,19 +231,17 @@ st.markdown(
         margin-bottom: 0.5rem;
     }
     .wolves-header h1 {
-        font-family: 'DM Serif Display', serif;
-        color: #FDB913;
+        color: #FDB913 !important;
         font-size: 1.8rem;
-        font-weight: 400;
+        font-weight: 700;
         margin: 0;
     }
     .wolves-header p {
-        color: rgba(255,255,255,0.5);
+        color: #9e9a95 !important;
         font-size: 0.85rem;
         margin: 0;
     }
 
-    /* Cards */
     .pillar-card {
         background: #2a2520;
         border-radius: 10px;
@@ -263,43 +251,51 @@ st.markdown(
         justify-content: space-between;
         align-items: center;
     }
+    .pillar-card .p-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #e8e4e0 !important;
+    }
+    .pillar-card .p-band {
+        font-size: 0.7rem;
+        color: #9e9a95 !important;
+    }
+    .pillar-card .p-score {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
 
-    /* Score display */
     .score-big {
         text-align: center;
         padding: 1.5rem;
-        background: rgba(253,185,19,0.06);
+        background: rgba(253,185,19,0.08);
         border-radius: 14px;
-        border: 1px solid rgba(253,185,19,0.15);
+        border: 1px solid rgba(253,185,19,0.2);
         margin-bottom: 2rem;
     }
     .score-big .number {
-        font-family: 'DM Serif Display', serif;
         font-size: 3.2rem;
         font-weight: 700;
     }
     .score-big .label {
-        color: rgba(255,255,255,0.4);
+        color: #9e9a95 !important;
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 2px;
         margin-top: 4px;
     }
 
-    /* Section headers */
     .section-header {
-        font-family: 'DM Serif Display', serif;
         font-size: 1.3rem;
-        font-weight: 400;
+        font-weight: 700;
         margin: 2rem 0 0.3rem;
     }
     .section-sub {
-        color: rgba(255,255,255,0.4);
+        color: #9e9a95 !important;
         font-size: 0.8rem;
         margin-bottom: 1rem;
     }
 
-    /* Attention items */
     .attention-item {
         background: #2a2520;
         border-radius: 10px;
@@ -319,19 +315,20 @@ st.markdown(
         font-size: 13px;
         font-weight: 700;
         flex-shrink: 0;
+        line-height: 28px;
+        text-align: center;
     }
     .attention-text {
         font-size: 0.85rem;
-        color: rgba(255,255,255,0.85);
+        color: #e8e4e0 !important;
         line-height: 1.4;
     }
     .attention-pillar {
         font-size: 0.7rem;
-        color: rgba(255,255,255,0.35);
+        color: #7a7570 !important;
         margin-top: 3px;
     }
 
-    /* Task cards */
     .task-card {
         background: #2a2520;
         border-radius: 10px;
@@ -343,17 +340,16 @@ st.markdown(
         font-size: 0.65rem;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: #FDB913;
+        color: #FDB913 !important;
         font-weight: 600;
         margin-bottom: 4px;
     }
     .task-text {
         font-size: 0.85rem;
-        color: rgba(255,255,255,0.8);
+        color: #e8e4e0 !important;
         line-height: 1.5;
     }
 
-    /* Strength items */
     .strength-item {
         background: #2a2520;
         border-radius: 10px;
@@ -364,39 +360,19 @@ st.markdown(
         justify-content: space-between;
         align-items: center;
     }
+    .strength-item .s-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #e8e4e0 !important;
+    }
+    .strength-item .s-score {
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
 
-    /* Hide streamlit defaults */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-
-    /* Style select/input */
-    .stSelectbox label, .stTextInput label {
-        color: rgba(255,255,255,0.5) !important;
-        font-size: 0.75rem !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    /* Radio buttons for ratings */
-    .stRadio > div {
-        flex-direction: row !important;
-        gap: 8px;
-    }
-    .stRadio > div > label {
-        background: rgba(255,255,255,0.05);
-        border: 2px solid rgba(255,255,255,0.1);
-        border-radius: 8px;
-        padding: 8px 14px !important;
-        color: rgba(255,255,255,0.7);
-        font-weight: 600;
-    }
-
-    div[data-testid="stForm"] {
-        background: transparent;
-        border: none;
-        padding: 0;
-    }
 </style>
 """,
     unsafe_allow_html=True,
@@ -408,221 +384,236 @@ st.markdown(
 
 def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, consider_improving, strengths, tasks):
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=False)
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=20)
 
-    # Background
-    pdf.set_fill_color(26, 23, 20)
-    pdf.rect(0, 0, 210, 297, "F")
+    def draw_bg():
+        pdf.set_fill_color(255, 255, 255)
+        pdf.rect(0, 0, 210, 297, "F")
+
+    def check_space(needed):
+        nonlocal y
+        if y + needed > 272:
+            pdf.add_page()
+            draw_bg()
+            return 20
+        return y
+
+    draw_bg()
+    y = 18
 
     # Header
     pdf.set_font("Helvetica", "", 9)
-    pdf.set_text_color(150, 140, 130)
-    pdf.set_y(18)
-    pdf.cell(0, 5, "WOLVERHAMPTON WANDERERS ACADEMY", align="C", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 5, "COACH DEVELOPMENT REPORT", align="C", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(6)
+    pdf.set_text_color(120, 120, 120)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 5, "WOLVERHAMPTON WANDERERS ACADEMY", align="C")
+    y += 5
+    pdf.set_xy(20, y)
+    pdf.cell(170, 5, "COACH DEVELOPMENT REPORT", align="C")
+    y += 10
 
     pdf.set_font("Helvetica", "B", 22)
-    pdf.set_text_color(*hex_to_rgb(WOLVES_GOLD))
-    pdf.cell(0, 10, coach_name, align="C", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(2)
+    pdf.set_text_color(35, 31, 32)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 10, coach_name, align="C")
+    y += 12
 
     pdf.set_font("Helvetica", "", 11)
-    pdf.set_text_color(150, 140, 130)
-    pdf.cell(0, 6, f"{age_group}  |  {block}", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_text_color(120, 120, 120)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 6, f"{age_group}  |  {block}", align="C")
+    y += 7
 
     pdf.set_font("Helvetica", "", 9)
-    pdf.cell(
-        0, 5,
-        datetime.now().strftime("%d %B %Y"),
-        align="C", new_x="LMARGIN", new_y="NEXT",
-    )
-    pdf.ln(8)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 5, datetime.now().strftime("%d %B %Y"), align="C")
+    y += 12
 
     # Overall Score
     all_avgs = [s["avg"] for s in pillar_scores]
     overall = sum(all_avgs) / len(all_avgs) if all_avgs else 0
-    pdf.set_fill_color(42, 37, 32)
-    pdf.rect(20, pdf.get_y(), 170, 18, "F")
+    pdf.set_fill_color(245, 243, 240)
+    pdf.rect(20, y, 170, 20, "F")
     pdf.set_font("Helvetica", "B", 24)
-    pdf.set_text_color(*hex_to_rgb(get_score_color(overall)))
-    y_pos = pdf.get_y()
-    pdf.set_xy(20, y_pos + 3)
-    pdf.cell(85, 12, f"{overall:.1f}", align="R")
+    r, g, b = hex_to_rgb(get_score_color(overall))
+    pdf.set_text_color(r, g, b)
+    pdf.set_xy(20, y + 3)
+    pdf.cell(85, 14, f"{overall:.1f}", align="R")
     pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(150, 140, 130)
-    pdf.cell(85, 12, f"  / 5.0  |  {get_score_band(overall)}", align="L")
-    pdf.set_y(y_pos + 22)
-
-    def new_page_bg():
-        pdf.set_fill_color(26, 23, 20)
-        pdf.rect(0, 0, 210, 297, "F")
-
-    def check_space(needed):
-        if pdf.get_y() + needed > 270:
-            pdf.add_page()
-            new_page_bg()
+    pdf.set_text_color(120, 120, 120)
+    pdf.cell(85, 14, f"  / 5.0  |  {get_score_band(overall)}")
+    y += 26
 
     # Pillar Breakdown
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.set_text_color(*hex_to_rgb(WOLVES_GOLD))
-    pdf.cell(0, 8, "Pillar Breakdown", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(3)
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.set_text_color(35, 31, 32)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 7, "Pillar Breakdown")
+    y += 10
 
     for ps in pillar_scores:
-        check_space(10)
-        color = hex_to_rgb(get_score_color(ps["avg"]))
-        y = pdf.get_y()
-        pdf.set_fill_color(42, 37, 32)
+        y = check_space(10)
+        r, g, b = hex_to_rgb(get_score_color(ps["avg"]))
+        pdf.set_fill_color(245, 243, 240)
         pdf.rect(20, y, 170, 8, "F")
-        pdf.set_fill_color(*color)
-        pdf.rect(20, y, 1.5, 8, "F")
-        pdf.set_xy(25, y)
+        pdf.set_fill_color(r, g, b)
+        pdf.rect(20, y, 2, 8, "F")
+        pdf.set_xy(26, y)
         pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(220, 215, 210)
-        pdf.cell(110, 8, ps["short"])
+        pdf.set_text_color(60, 55, 50)
+        pdf.cell(100, 8, ps["short"])
         pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(150, 140, 130)
-        pdf.cell(30, 8, get_score_band(ps["avg"]), align="R")
+        pdf.set_text_color(140, 135, 130)
+        pdf.cell(40, 8, get_score_band(ps["avg"]), align="R")
         pdf.set_font("Helvetica", "B", 10)
-        pdf.set_text_color(*color)
+        pdf.set_text_color(r, g, b)
         pdf.cell(20, 8, f"{ps['avg']:.1f}", align="R")
-        pdf.set_y(y + 10)
-    pdf.ln(4)
+        y += 10
+    y += 6
 
     # Immediate Attention
-    check_space(35)
-    pdf.set_font("Helvetica", "B", 14)
+    y = check_space(40)
+    pdf.set_font("Helvetica", "B", 13)
     pdf.set_text_color(231, 76, 60)
-    pdf.cell(0, 8, "Immediate Attention", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_xy(20, y)
+    pdf.cell(170, 7, "Immediate Attention")
+    y += 7
     pdf.set_font("Helvetica", "", 8)
-    pdf.set_text_color(150, 140, 130)
-    pdf.cell(0, 4, "Your 3 lowest self-ratings across all pillars", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(3)
+    pdf.set_text_color(140, 135, 130)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 4, "Your 3 lowest self-ratings across all pillars")
+    y += 7
 
     for item in immediate_attn:
-        check_space(14)
-        lines = pdf.multi_cell(145, 4, item["question"], split_only=True)
-        h = max(8, len(lines) * 4 + 3)
-        y = pdf.get_y()
-        pdf.set_fill_color(42, 37, 32)
+        y = check_space(16)
+        pdf.set_font("Helvetica", "", 9)
+        text_w = 140
+        lines = pdf.multi_cell(text_w, 4, item["question"], dry_run=True, output="LINES")
+        h = max(10, len(lines) * 4 + 6)
+        pdf.set_fill_color(245, 243, 240)
         pdf.rect(20, y, 170, h, "F")
         pdf.set_fill_color(231, 76, 60)
-        pdf.rect(20, y, 1.5, h, "F")
-        pdf.set_xy(25, y + 1)
+        pdf.rect(20, y, 2, h, "F")
         pdf.set_font("Helvetica", "B", 9)
         pdf.set_text_color(231, 76, 60)
+        pdf.set_xy(26, y + 2)
         pdf.cell(8, 5, str(item["score"]))
         pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(220, 215, 210)
-        pdf.set_xy(35, y + 1)
-        pdf.multi_cell(150, 4, item["question"])
-        pdf.set_xy(35, y + h - 4)
+        pdf.set_text_color(60, 55, 50)
+        pdf.set_xy(36, y + 2)
+        pdf.multi_cell(text_w, 4, item["question"])
         pdf.set_font("Helvetica", "", 7)
-        pdf.set_text_color(120, 115, 110)
-        pdf.cell(0, 3, item["pillar"])
-        pdf.set_y(y + h + 2)
-    pdf.ln(3)
+        pdf.set_text_color(140, 135, 130)
+        pdf.set_xy(36, y + h - 5)
+        pdf.cell(text_w, 3, item["pillar"])
+        y += h + 2
+    y += 4
 
     # Consider Improving
     if consider_improving["pillar"]:
-        check_space(35)
-        pdf.set_font("Helvetica", "B", 14)
+        y = check_space(40)
+        pdf.set_font("Helvetica", "B", 13)
         pdf.set_text_color(243, 156, 18)
-        pdf.cell(0, 8, "Consider Improving", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(150, 140, 130)
+        pdf.set_xy(20, y)
+        pdf.cell(170, 7, "Consider Improving")
+        y += 7
         ci_pillar = consider_improving["pillar"]
-        pdf.cell(
-            0, 4,
-            f"3 lowest from your weakest pillar: {ci_pillar['short']} ({ci_pillar['avg']:.1f}/5)",
-            new_x="LMARGIN", new_y="NEXT",
-        )
-        pdf.ln(3)
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_text_color(140, 135, 130)
+        pdf.set_xy(20, y)
+        pdf.cell(170, 4, f"3 lowest from your weakest pillar: {ci_pillar['short']} ({ci_pillar['avg']:.1f}/5)")
+        y += 7
 
         for item in consider_improving["questions"]:
-            check_space(14)
-            lines = pdf.multi_cell(145, 4, item["question"], split_only=True)
-            h = max(8, len(lines) * 4 + 3)
-            y = pdf.get_y()
-            pdf.set_fill_color(42, 37, 32)
+            y = check_space(16)
+            pdf.set_font("Helvetica", "", 9)
+            text_w = 140
+            lines = pdf.multi_cell(text_w, 4, item["question"], dry_run=True, output="LINES")
+            h = max(10, len(lines) * 4 + 4)
+            pdf.set_fill_color(245, 243, 240)
             pdf.rect(20, y, 170, h, "F")
             pdf.set_fill_color(243, 156, 18)
-            pdf.rect(20, y, 1.5, h, "F")
-            pdf.set_xy(25, y + 1)
+            pdf.rect(20, y, 2, h, "F")
             pdf.set_font("Helvetica", "B", 9)
             pdf.set_text_color(243, 156, 18)
+            pdf.set_xy(26, y + 2)
             pdf.cell(8, 5, str(item["score"]))
             pdf.set_font("Helvetica", "", 9)
-            pdf.set_text_color(220, 215, 210)
-            pdf.set_xy(35, y + 1)
-            pdf.multi_cell(150, 4, item["question"])
-            pdf.set_y(y + h + 2)
-        pdf.ln(3)
+            pdf.set_text_color(60, 55, 50)
+            pdf.set_xy(36, y + 2)
+            pdf.multi_cell(text_w, 4, item["question"])
+            y += h + 2
+        y += 4
 
     # Areas of Strength
-    check_space(30)
-    pdf.set_font("Helvetica", "B", 14)
+    y = check_space(35)
+    pdf.set_font("Helvetica", "B", 13)
     pdf.set_text_color(39, 174, 96)
-    pdf.cell(0, 8, "Areas of Strength", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_xy(20, y)
+    pdf.cell(170, 7, "Areas of Strength")
+    y += 7
     pdf.set_font("Helvetica", "", 8)
-    pdf.set_text_color(150, 140, 130)
-    pdf.cell(0, 4, "Your three highest-scoring pillars", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(3)
+    pdf.set_text_color(140, 135, 130)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 4, "Your three highest-scoring pillars")
+    y += 7
 
     for s in strengths:
-        check_space(10)
-        y = pdf.get_y()
-        pdf.set_fill_color(42, 37, 32)
+        y = check_space(10)
+        r, g, b = hex_to_rgb(get_score_color(s["avg"]))
+        pdf.set_fill_color(245, 243, 240)
         pdf.rect(20, y, 170, 8, "F")
         pdf.set_fill_color(39, 174, 96)
-        pdf.rect(20, y, 1.5, 8, "F")
-        pdf.set_xy(25, y)
+        pdf.rect(20, y, 2, 8, "F")
+        pdf.set_xy(26, y)
         pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(220, 215, 210)
+        pdf.set_text_color(60, 55, 50)
         pdf.cell(140, 8, s["name"])
         pdf.set_font("Helvetica", "B", 10)
-        pdf.set_text_color(39, 174, 96)
+        pdf.set_text_color(r, g, b)
         pdf.cell(20, 8, f"{s['avg']:.1f}", align="R")
-        pdf.set_y(y + 10)
-    pdf.ln(4)
+        y += 10
+    y += 6
 
     # Action Plan
-    check_space(20)
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.set_text_color(*hex_to_rgb(WOLVES_GOLD))
-    pdf.cell(0, 8, "Suggested Action Plan", new_x="LMARGIN", new_y="NEXT")
+    y = check_space(25)
+    pdf.set_font("Helvetica", "B", 13)
+    r, g, b = hex_to_rgb(WOLVES_GOLD)
+    pdf.set_text_color(r, g, b)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 7, "Suggested Action Plan")
+    y += 7
     pdf.set_font("Helvetica", "", 8)
-    pdf.set_text_color(150, 140, 130)
-    pdf.cell(0, 4, "Development tasks from the Coach Toolbox linked to your weakest pillars", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(3)
+    pdf.set_text_color(140, 135, 130)
+    pdf.set_xy(20, y)
+    pdf.cell(170, 4, "Development tasks from the Coach Toolbox linked to your weakest pillars")
+    y += 7
 
     for t in tasks:
-        check_space(16)
-        lines = pdf.multi_cell(155, 4, t["task"], split_only=True)
-        h = len(lines) * 4 + 10
-        y = pdf.get_y()
-        pdf.set_fill_color(42, 37, 32)
-        pdf.rect(20, y, 170, h, "F")
-        pdf.set_fill_color(*hex_to_rgb(WOLVES_GOLD))
-        pdf.rect(20, y, 1.5, h, "F")
-        pdf.set_xy(25, y + 1)
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(*hex_to_rgb(WOLVES_GOLD))
-        pdf.cell(0, 4, t["pillar"].upper())
-        pdf.set_xy(25, y + 6)
+        y = check_space(18)
         pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(220, 215, 210)
-        pdf.multi_cell(155, 4, t["task"])
-        pdf.set_y(y + h + 2)
+        text_w = 155
+        lines = pdf.multi_cell(text_w, 4, t["task"], dry_run=True, output="LINES")
+        h = len(lines) * 4 + 10
+        pdf.set_fill_color(245, 243, 240)
+        pdf.rect(20, y, 170, h, "F")
+        pdf.set_fill_color(r, g, b)
+        pdf.rect(20, y, 2, h, "F")
+        pdf.set_xy(26, y + 1)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_text_color(r, g, b)
+        pdf.cell(155, 4, t["pillar"].upper())
+        pdf.set_xy(26, y + 6)
+        pdf.set_font("Helvetica", "", 9)
+        pdf.set_text_color(60, 55, 50)
+        pdf.multi_cell(text_w, 4, t["task"])
+        y += h + 2
 
     return pdf.output()
 
 
 # --- APP LOGIC ---
 
-# Session state init
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
 if "ratings" not in st.session_state:
@@ -657,7 +648,7 @@ if not st.session_state.submitted:
 
         for p_idx, pillar in enumerate(PILLARS):
             st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">{pillar["name"]}</div>', unsafe_allow_html=True)
-            st.markdown('<p style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-bottom: 1rem;">Rate yourself 1-5 for each question</p>', unsafe_allow_html=True)
+            st.caption("Rate yourself 1 to 5 for each question")
 
             for q_idx, question in enumerate(pillar["questions"]):
                 key = f"{pillar['id']}_{q_idx}"
@@ -675,7 +666,7 @@ if not st.session_state.submitted:
             st.divider()
 
         if st.button(
-            "Generate Report" if all_answered else f"Complete all questions to generate report",
+            "Generate Report" if all_answered else "Complete all questions to generate report",
             disabled=not all_answered,
             type="primary" if all_answered else "secondary",
             use_container_width=True,
@@ -725,14 +716,11 @@ else:
 
     overall = sum(ps["avg"] for ps in pillar_scores) / len(pillar_scores)
 
-    # Sort
     sorted_pillars = sorted(pillar_scores, key=lambda x: x["avg"])
     sorted_questions = sorted(all_questions, key=lambda x: x["score"])
 
-    # Immediate attention: 3 worst ratings overall
     immediate_attn = sorted_questions[:3]
 
-    # Consider improving: 3 worst from weakest pillar
     weakest_pillar = sorted_pillars[0]
     weakest_pillar_qs = []
     for q_idx, q in enumerate(weakest_pillar["questions"]):
@@ -746,10 +734,8 @@ else:
         "questions": weakest_pillar_qs[:3],
     }
 
-    # Strengths: top 3
     strengths = sorted(pillar_scores, key=lambda x: x["avg"], reverse=True)[:3]
 
-    # Tasks
     tasks = []
     for p in sorted_pillars[:3]:
         available = TOOLBOX_TASKS.get(p["id"], [])
@@ -758,17 +744,15 @@ else:
 
     # --- DISPLAY ---
 
-    # Report header
     st.markdown(f"""
     <div style="text-align: center; margin-bottom: 1rem;">
         <img src="https://resources.premierleague.com/premierleague/badges/50/t39.png" style="width: 50px;">
-        <p style="color: rgba(255,255,255,0.4); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0 4px;">Coach Development Report</p>
-        <h2 style="font-family: 'DM Serif Display', serif; color: {WOLVES_GOLD}; margin: 0;">{coach_name}</h2>
-        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">{age_group} · {block}</p>
+        <p style="color: #9e9a95; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0 4px;">Coach Development Report</p>
+        <h2 style="color: {WOLVES_GOLD} !important; margin: 0; font-weight: 700;">{coach_name}</h2>
+        <p style="color: #9e9a95; font-size: 0.85rem;">{age_group} · {block}</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Overall score
     st.markdown(f"""
     <div class="score-big">
         <div class="number" style="color: {get_score_color(overall)};">{overall:.1f}</div>
@@ -785,10 +769,10 @@ else:
         st.markdown(f"""
         <div class="pillar-card" style="border-left: 4px solid {color};">
             <div>
-                <div style="font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.85);">{ps["short"]}</div>
-                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">{get_score_band(ps["avg"])}</div>
+                <div class="p-name">{ps["short"]}</div>
+                <div class="p-band">{get_score_band(ps["avg"])}</div>
             </div>
-            <div style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: 700; color: {color};">{ps["avg"]:.1f}</div>
+            <div class="p-score" style="color: {color};">{ps["avg"]:.1f}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -828,8 +812,8 @@ else:
     for s in strengths:
         st.markdown(f"""
         <div class="strength-item">
-            <div style="font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.9);">{s["name"]}</div>
-            <div style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 700; color: {get_score_color(s["avg"])};">{s["avg"]:.1f}</div>
+            <div class="s-name">{s["name"]}</div>
+            <div class="s-score" style="color: {get_score_color(s['avg'])};">{s["avg"]:.1f}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -845,7 +829,7 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-    # PDF Download + Actions
+    # Buttons
     st.markdown("")
     col1, col2, col3 = st.columns(3)
 
@@ -865,7 +849,7 @@ else:
         )
 
     with col2:
-        if st.button("← Edit Responses", use_container_width=True):
+        if st.button("Edit Responses", use_container_width=True):
             st.session_state.submitted = False
             st.rerun()
 
@@ -873,7 +857,4 @@ else:
         if st.button("New Evaluation", use_container_width=True):
             st.session_state.submitted = False
             st.session_state.ratings = {}
-            st.session_state.coach_name = ""
-            st.session_state.age_group = ""
-            st.session_state.block = ""
             st.rerun()
