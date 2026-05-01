@@ -126,58 +126,58 @@ PILLARS = [
 
 TOOLBOX_TASKS = {
     "session_design": [
-        "In a 6-week block, use a tactics board every session and game and report back what you notice about players and your delivery",
-        "For 6-weeks, intentionally outline the demands of the game players can expect to develop in session",
-        "Within a 6-week block, deliver a team-talk to players. Aim to record and review at least two",
-        "For the next 6-weeks, select a less familiar intervention you will meaningfully aim to develop (e.g. Q&A, Observation & Feedback)",
+        "In 8-week period join a different age group planning session at least 4 times and record what they do and is it transferrable to you and your team",
+        "Produce detailed plan of session with how each part of the session will flow and roles and responsibilities of each member of staff",
+        "For a 8-week block, introduce each session and set clear intentions for at least one player each time (e.g. player A will get the chance to...)",
+        "Plan your session at least 24hrs before and go through it with Lead Coach or HOC 6 times in 8-week block",
     ],
     "individual_dev": [
-        "Ensure IDPs are printed and pitch side for a 6-week block",
-        "For the next 6-weeks, set players individual arrival tasks to practice linked to IDP",
-        "Across the next 6-weeks, provide every player with a personalised demands of the game practice to develop",
-        "Throughout a 6-week block take 5 minutes to ask questions about each player's IDP",
+        "In 8-week period produce a study on an individual player and how you tend to improve him during a session",
+        "In 2 games in an 8-week block only coach two individuals within the game - review afterwards with said player",
+        "Produce a report on 2/3 players in top leagues of a player in a specific position and study what skills are required to excel",
+        "Produce a document that highlights areas of development for individual positions that players could perform with little help or equipment",
     ],
     "match_impact": [
-        "In a 6-week block, use subs throughout games to capture data linked to learning outcomes (e.g. count box entries)",
-        "Attend 2 home games in the next block and report back on the teams 'game plan'",
-        "Accurately record match minutes by position for 6-weeks and report findings back to Lead Phase Coach",
-        "Within the 6-week block, nominate set piece takers for all games and establish time in the last session of the week to practice",
+        "In 8-week block record two team talks and analyse one each with two different members of staff",
+        "In a 8-week block, create 12 clips for the analysis best practice library. Present to fellow coaches",
+        "Record your actions 3 times within an 8-week period and review how much interaction you have with the players and which players you are coaching the most",
+        "Produce clips from 3 different games that show players decision-making progressing",
     ],
     "people_leadership": [
-        "In the next 6-weeks, observe another coach for a session and provide feedback on their session",
-        "Across a 6-week block find out from players who they feel 'gets the best' out of them and why?",
-        "For 6-weeks ensure you speak with (at least two) players and their parents informally after home games",
-        "Throughout the next 6-week block, establish which coaching style each player you work with prefers",
+        "In 8-week period find out and record two previously unknown facts about every player within your squad",
+        "Organise a staff social that all staff in your MDT will attend and enjoy",
+        "Working with and through parents - produce a case study on an example of you interacting with a parent(s) in a positive way",
+        "Sit next to staff or players not from your department while eating breakfast and lunch",
     ],
     "professionalism": [
-        "Schedule a review of your DAP/CCF with another member of staff",
-        "In the next 6-weeks, update your DAP, review your progress and complete a CCF evaluation",
-        "Ensure footballs are pumped, bibs and discs are clean and ready for use and sessions are set up prior to player arrival",
-        "Plan, deliver and review a CPD to other members of the coaching team",
+        "In the next 8-weeks, observe two coaches and evaluate how they coach, noting strengths and weaknesses of their behaviours",
+        "In a 8-week period, journal your touchline behaviours and feedback to HoC or phase lead coach",
+        "Target one behaviour that you feel is lacking in your make-up and record how you improve in an 8-week period",
+        "In the next 8-weeks, plan, deliver and review (with a peer) a recorded training session and specify which behaviour you are trying to go after",
     ],
     "technical": [
-        "Within a 6-week block, complete 2 separate video analysis sessions",
-        "In a 6-week block, create 12 clips for the analysis best practice library",
-        "Add 6 SSP sessions to the best practice library in the 6-week block",
-        "In a 6-week block, leave 20 clips/comments for players on Veo",
+        "Go to a senior game and produce a presentation to show fellow coaches on what you saw technically and how it affected the game",
+        "In a 8-week period sit in on 4 analysis sessions from other age groups and make notes on what you see and have learnt - feedback to HOC",
+        "In 8-week period watch age(s) group above and notice where players struggle technically and produce sessions to improve these areas",
+        "Design a technical session that involves a decision-making element and progress the same session over an 8-week period",
     ],
     "tactical": [
-        "In a 6-week block, find out what every player's views are on how Wolves sides play",
-        "For 6-weeks, reference the competency being practiced in sessions and how/what players can expect to develop",
-        "For the entire 6-week block, ensure match day planner and tactics board are pitch side at training and games",
-        "In the next 6-weeks carry out an evaluation of learning preferences with a group",
+        "Attend an external game and report back on a minimum of 3 slides your take home messages from the match - present at coaches' workshop",
+        "In a 8-week period watch a top European game and dissect one of the team's tactical plan and how you thought it worked (didn't), present to coaches",
+        "In 8-week period change your normal formation and note what strengths and weaknesses the new one will produce and produce answers",
+        "Review two games from a different team and look for what tactical strategies they were looking to explore and speak to that coach around the outcomes",
     ],
     "athletic_dev": [
-        "For 6-weeks, deliver clear physical intentions before each part of the session",
-        "For 6-weeks, complete a 10 min. structured warm up that involves a clear physical performance marker every session",
-        "For a 6-week block organise your training week into extensive and intensive training days with RPEs recorded for each session",
-        "Within a 6-week block, record 2 sessions and work out the ball rolling time in each session",
+        "For 8-week period sit in on medical weekly meeting to understand growth related injuries",
+        "In 8-week period meet with S and C to discuss structure at the beginning of the week",
+        "In the next 8 weeks go to a different club/sport to see how they develop their players in this area",
+        "Take RPE from players post session and reflect with S and C for objective feedback. Keep notes to show findings",
     ],
     "psychological": [
-        "In a 6-week period, journal your touchline behaviours and feedback to HoC or phase lead coach",
-        "Within the 6-week block, arrange to collect and review player voice feedback with the intention of selecting your next development goal",
-        "Within a 6-week block plan, deliver and review a competency-based workshop",
-        "For 6-weeks, casually use 'what's the score' with players to gauge mood and attitude to learning before training begins",
+        "In a 8-week block speak and record to a coach about how they support their players in this area",
+        "In 8-week period have reflective conversations with the club psychologist",
+        "Observe a coach in practice how they use this area of their expertise to enhance their sessions",
+        "Buddy up/co-deliver with a coach you feel is strong on this area 4 times in the 8-week period",
     ],
 }
 
@@ -609,7 +609,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
         pdf.multi_cell(text_w, 4, t["task"])
         y += h + 2
 
-    return bytes(pdf.output())
+    return pdf.output()
 
 
 # --- APP LOGIC ---
