@@ -124,64 +124,8 @@ PILLARS = [
     },
 ]
 
-TOOLBOX_TASKS = {
-    "session_design": [
-        "In 8-week period join a different age group planning session at least 4 times and record what they do and is it transferrable to you and your team",
-        "Produce detailed plan of session with how each part of the session will flow and roles and responsibilities of each member of staff",
-        "For a 8-week block, introduce each session and set clear intentions for at least one player each time (e.g. player A will get the chance to...)",
-        "Plan your session at least 24hrs before and go through it with Lead Coach or HOC 6 times in 8-week block",
-    ],
-    "individual_dev": [
-        "In 8-week period produce a study on an individual player and how you tend to improve him during a session",
-        "In 2 games in an 8-week block only coach two individuals within the game - review afterwards with said player",
-        "Produce a report on 2/3 players in top leagues of a player in a specific position and study what skills are required to excel",
-        "Produce a document that highlights areas of development for individual positions that players could perform with little help or equipment",
-    ],
-    "match_impact": [
-        "In 8-week block record two team talks and analyse one each with two different members of staff",
-        "In a 8-week block, create 12 clips for the analysis best practice library. Present to fellow coaches",
-        "Record your actions 3 times within an 8-week period and review how much interaction you have with the players and which players you are coaching the most",
-        "Produce clips from 3 different games that show players decision-making progressing",
-    ],
-    "people_leadership": [
-        "In 8-week period find out and record two previously unknown facts about every player within your squad",
-        "Organise a staff social that all staff in your MDT will attend and enjoy",
-        "Working with and through parents - produce a case study on an example of you interacting with a parent(s) in a positive way",
-        "Sit next to staff or players not from your department while eating breakfast and lunch",
-    ],
-    "professionalism": [
-        "In the next 8-weeks, observe two coaches and evaluate how they coach, noting strengths and weaknesses of their behaviours",
-        "In a 8-week period, journal your touchline behaviours and feedback to HoC or phase lead coach",
-        "Target one behaviour that you feel is lacking in your make-up and record how you improve in an 8-week period",
-        "In the next 8-weeks, plan, deliver and review (with a peer) a recorded training session and specify which behaviour you are trying to go after",
-    ],
-    "technical": [
-        "Go to a senior game and produce a presentation to show fellow coaches on what you saw technically and how it affected the game",
-        "In a 8-week period sit in on 4 analysis sessions from other age groups and make notes on what you see and have learnt - feedback to HOC",
-        "In 8-week period watch age(s) group above and notice where players struggle technically and produce sessions to improve these areas",
-        "Design a technical session that involves a decision-making element and progress the same session over an 8-week period",
-    ],
-    "tactical": [
-        "Attend an external game and report back on a minimum of 3 slides your take home messages from the match - present at coaches' workshop",
-        "In a 8-week period watch a top European game and dissect one of the team's tactical plan and how you thought it worked (didn't), present to coaches",
-        "In 8-week period change your normal formation and note what strengths and weaknesses the new one will produce and produce answers",
-        "Review two games from a different team and look for what tactical strategies they were looking to explore and speak to that coach around the outcomes",
-    ],
-    "athletic_dev": [
-        "For 8-week period sit in on medical weekly meeting to understand growth related injuries",
-        "In 8-week period meet with S and C to discuss structure at the beginning of the week",
-        "In the next 8 weeks go to a different club/sport to see how they develop their players in this area",
-        "Take RPE from players post session and reflect with S and C for objective feedback. Keep notes to show findings",
-    ],
-    "psychological": [
-        "In a 8-week block speak and record to a coach about how they support their players in this area",
-        "In 8-week period have reflective conversations with the club psychologist",
-        "Observe a coach in practice how they use this area of their expertise to enhance their sessions",
-        "Buddy up/co-deliver with a coach you feel is strong on this area 4 times in the 8-week period",
-    ],
-}
 
-AGE_GROUPS = ["U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16"]
+AGE_GROUPS = ["U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U18", "U21"]
 BLOCKS = ["Block 1", "Block 2", "Block 3", "Block 4", "Block 5", "Block 6"]
 RATING_LABELS = {1: "Significant Gap", 2: "Developing", 3: "Competent", 4: "Strong", 5: "Exceptional"}
 
@@ -329,27 +273,6 @@ st.markdown(
         margin-top: 3px;
     }
 
-    .task-card {
-        background: #2a2520;
-        border-radius: 10px;
-        padding: 14px 18px;
-        margin-bottom: 8px;
-        border-left: 3px solid #FDB913;
-    }
-    .task-pillar {
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: #FDB913 !important;
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-    .task-text {
-        font-size: 0.85rem;
-        color: #e8e4e0 !important;
-        line-height: 1.5;
-    }
-
     .strength-item {
         background: #2a2520;
         border-radius: 10px;
@@ -382,7 +305,7 @@ st.markdown(
 # --- PDF GENERATION ---
 
 
-def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, consider_improving, strengths, tasks):
+def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, consider_improving, strengths):
     pdf = FPDF()
     pdf.set_auto_page_break(auto=False)
     pdf.add_page()
@@ -575,39 +498,25 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
         y += 10
     y += 6
 
-    # Action Plan
+    # Weakest Topic Area highlight
     y = check_space(25)
-    pdf.set_font("Helvetica", "B", 13)
-    r, g, b = hex_to_rgb(WOLVES_GOLD)
-    pdf.set_text_color(r, g, b)
-    pdf.set_xy(20, y)
-    pdf.cell(170, 7, "Suggested Action Plan")
-    y += 7
-    pdf.set_font("Helvetica", "", 8)
+    weakest = sorted(pillar_scores, key=lambda x: x["avg"])[0]
+    pdf.set_fill_color(245, 235, 230)
+    pdf.rect(20, y, 170, 22, "F")
+    r2, g2, b2 = hex_to_rgb(get_score_color(weakest["avg"]))
+    pdf.set_fill_color(r2, g2, b2)
+    pdf.rect(20, y, 2, 22, "F")
+    pdf.set_xy(26, y + 3)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_text_color(60, 55, 50)
+    pdf.cell(170, 5, "Primary Development Area")
+    pdf.set_xy(26, y + 10)
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.set_text_color(r2, g2, b2)
+    pdf.cell(120, 7, weakest["name"])
+    pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(140, 135, 130)
-    pdf.set_xy(20, y)
-    pdf.cell(170, 4, "Development tasks from the Coach Toolbox linked to your weakest pillars")
-    y += 7
-
-    for t in tasks:
-        y = check_space(18)
-        pdf.set_font("Helvetica", "", 9)
-        text_w = 155
-        lines = pdf.multi_cell(text_w, 4, t["task"], dry_run=True, output="LINES")
-        h = len(lines) * 4 + 10
-        pdf.set_fill_color(245, 243, 240)
-        pdf.rect(20, y, 170, h, "F")
-        pdf.set_fill_color(r, g, b)
-        pdf.rect(20, y, 2, h, "F")
-        pdf.set_xy(26, y + 1)
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_text_color(r, g, b)
-        pdf.cell(155, 4, t["pillar"].upper())
-        pdf.set_xy(26, y + 6)
-        pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(60, 55, 50)
-        pdf.multi_cell(text_w, 4, t["task"])
-        y += h + 2
+    pdf.cell(30, 7, f"{weakest['avg']:.1f} / 5.0", align="R")
 
     return bytes(pdf.output())
 
@@ -736,12 +645,6 @@ else:
 
     strengths = sorted(pillar_scores, key=lambda x: x["avg"], reverse=True)[:3]
 
-    tasks = []
-    for p in sorted_pillars[:3]:
-        available = TOOLBOX_TASKS.get(p["id"], [])
-        for t in available[:2]:
-            tasks.append({"pillar": p["short"], "task": t})
-
     # --- DISPLAY ---
 
     st.markdown(f"""
@@ -817,17 +720,17 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-    # Action Plan
-    st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">Suggested Action Plan</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">Development tasks from the Coach Toolbox linked to your weakest pillars</div>', unsafe_allow_html=True)
-
-    for t in tasks:
-        st.markdown(f"""
-        <div class="task-card">
-            <div class="task-pillar">{t["pillar"]}</div>
-            <div class="task-text">{t["task"]}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    # Primary Development Area
+    weakest_overall = sorted_pillars[0]
+    wcolor = get_score_color(weakest_overall["avg"])
+    st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">Primary Development Area</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="background: #2a2520; border-radius: 12px; padding: 20px 24px; border-left: 5px solid {wcolor}; margin-top: 12px;">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #9e9a95; margin-bottom: 6px;">Your weakest pillar overall</div>
+        <div style="font-size: 1.2rem; font-weight: 700; color: #e8e4e0;">{weakest_overall["name"]}</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: {wcolor}; margin-top: 4px;">{weakest_overall["avg"]:.1f} <span style="font-size: 0.85rem; color: #9e9a95; font-weight: 400;">/ 5.0</span></div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Buttons
     st.markdown("")
@@ -836,7 +739,7 @@ else:
     with col1:
         pdf_bytes = generate_pdf(
             coach_name, age_group, block, pillar_scores,
-            immediate_attn, consider_improving, strengths, tasks,
+            immediate_attn, consider_improving, strengths,
         )
         filename = f"Coach_Dev_Report_{coach_name.replace(' ', '_')}_{age_group}_{block.replace(' ', '_')}.pdf"
         st.download_button(
