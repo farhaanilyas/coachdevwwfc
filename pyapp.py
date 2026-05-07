@@ -553,7 +553,7 @@ if not st.session_state.submitted:
     if coach_name and age_group and block:
         st.divider()
 
-        all_answered = True
+        form_complete = True
 
         for p_idx, pillar in enumerate(PILLARS):
             st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">{pillar["name"]}</div>', unsafe_allow_html=True)
@@ -570,14 +570,14 @@ if not st.session_state.submitted:
                 )
                 st.session_state.ratings[key] = rating
                 if rating == 0:
-                    all_answered = False
+                    form_complete = False
 
             st.divider()
 
         if st.button(
-            "Generate Report" if all_answered else "Complete all questions to generate report",
-            disabled=not all_answered,
-            type="primary" if all_answered else "secondary",
+            "Generate Report" if form_complete else "Complete all questions to generate report",
+            disabled=not form_complete,
+            type="primary" if form_complete else "secondary",
             use_container_width=True,
         ):
             st.session_state.submitted = True
@@ -598,4 +598,4 @@ else:
 
     # Calculate pillar scores
     pillar_scores = []
-    all
+  
