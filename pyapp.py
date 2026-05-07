@@ -130,26 +130,26 @@ BLOCKS = ["Block 1", "Block 2", "Block 3", "Block 4", "Block 5", "Block 6"]
 RATING_LABELS = {1: "Significant Gap", 2: "Developing", 3: "Competent", 4: "Strong", 5: "Exceptional"}
 
 
-def get_score_color(score):
-    if score <= 1.5:
+def get_score_color(total):
+    if total <= 7:
         return "#e74c3c"
-    if score <= 2.5:
+    if total <= 12:
         return "#f39c12"
-    if score <= 3.5:
+    if total <= 17:
         return "#f1c40f"
-    if score <= 4.0:
+    if total <= 20:
         return "#8bc34a"
     return "#27ae60"
 
 
-def get_score_band(score):
-    if score <= 1.5:
+def get_score_band(total):
+    if total <= 7:
         return "Immediate Attention"
-    if score <= 2.5:
+    if total <= 12:
         return "Needs Development"
-    if score <= 3.5:
+    if total <= 17:
         return "Developing"
-    if score <= 4.0:
+    if total <= 20:
         return "Strong"
     return "Exceptional"
 
@@ -344,7 +344,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(120, 120, 120)
     pdf.set_xy(20, y)
-    pdf.cell(170, 6, f"{age_group}  |  {block}", align="C")
+    pdf.cell(170, 6, f"{age_group} | {block}", align="C")
     y += 7
 
     pdf.set_font("Helvetica", "", 9)
@@ -353,18 +353,18 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     y += 12
 
     # Overall Score
-    all_avgs = [s["avg"] for s in pillar_scores]
-    overall = sum(all_avgs) / len(all_avgs) if all_avgs else 0
+    all_totals = [s["total"] for s in pillar_scores]
+    overall = sum(all_totals)
     pdf.set_fill_color(245, 243, 240)
     pdf.rect(20, y, 170, 20, "F")
     pdf.set_font("Helvetica", "B", 24)
-    r, g, b = hex_to_rgb(get_score_color(overall))
+    r, g, b = hex_to_rgb(get_score_color(overall / 9))
     pdf.set_text_color(r, g, b)
     pdf.set_xy(20, y + 3)
-    pdf.cell(85, 14, f"{overall:.1f}", align="R")
+    pdf.cell(85, 14, str(overall), align="R")
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(85, 14, f"  / 5.0  |  {get_score_band(overall)}")
+    pdf.cell(85, 14, f" / 225 | {get_score_band(overall / 9)}")
     y += 26
 
     # Pillar Breakdown
@@ -376,7 +376,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
 
     for ps in pillar_scores:
         y = check_space(10)
-        r, g, b = hex_to_rgb(get_score_color(ps["avg"]))
+        r, g, b = hex_to_rgb(get_score_color(ps["total"]))
         pdf.set_fill_color(245, 243, 240)
         pdf.rect(20, y, 170, 8, "F")
         pdf.set_fill_color(r, g, b)
@@ -387,10 +387,10 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
         pdf.cell(100, 8, ps["short"])
         pdf.set_font("Helvetica", "", 8)
         pdf.set_text_color(140, 135, 130)
-        pdf.cell(40, 8, get_score_band(ps["avg"]), align="R")
+        pdf.cell(40, 8, get_score_band(ps["total"]), align="R")
         pdf.set_font("Helvetica", "B", 10)
         pdf.set_text_color(r, g, b)
-        pdf.cell(20, 8, f"{ps['avg']:.1f}", align="R")
+        pdf.cell(20, 8, f"{ps['total']} / 25", align="R")
         y += 10
     y += 6
 
@@ -444,7 +444,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
         pdf.set_font("Helvetica", "", 8)
         pdf.set_text_color(140, 135, 130)
         pdf.set_xy(20, y)
-        pdf.cell(170, 4, f"3 lowest from your weakest pillar: {ci_pillar['short']} ({ci_pillar['avg']:.1f}/5)")
+        pdf.cell(170, 4, f"3 lowest from your weakest pillar: {ci_pillar['short']} ({ci_pillar['total']}/25)")
         y += 7
 
         for item in consider_improving["questions"]:
@@ -483,7 +483,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
 
     for s in strengths:
         y = check_space(10)
-        r, g, b = hex_to_rgb(get_score_color(s["avg"]))
+        r, g, b = hex_to_rgb(get_score_color(s["total"]))
         pdf.set_fill_color(245, 243, 240)
         pdf.rect(20, y, 170, 8, "F")
         pdf.set_fill_color(39, 174, 96)
@@ -494,16 +494,16 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
         pdf.cell(140, 8, s["name"])
         pdf.set_font("Helvetica", "B", 10)
         pdf.set_text_color(r, g, b)
-        pdf.cell(20, 8, f"{s['avg']:.1f}", align="R")
+        pdf.cell(20, 8, f"{s['total']} / 25", align="R")
         y += 10
     y += 6
 
     # Weakest Topic Area highlight
     y = check_space(25)
-    weakest = sorted(pillar_scores, key=lambda x: x["avg"])[0]
+    weakest = sorted(pillar_scores, key=lambda x: x["total"])[0]
     pdf.set_fill_color(245, 235, 230)
     pdf.rect(20, y, 170, 22, "F")
-    r2, g2, b2 = hex_to_rgb(get_score_color(weakest["avg"]))
+    r2, g2, b2 = hex_to_rgb(get_score_color(weakest["total"]))
     pdf.set_fill_color(r2, g2, b2)
     pdf.rect(20, y, 2, 22, "F")
     pdf.set_xy(26, y + 3)
@@ -516,7 +516,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     pdf.cell(120, 7, weakest["name"])
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(140, 135, 130)
-    pdf.cell(30, 7, f"{weakest['avg']:.1f} / 5.0", align="R")
+    pdf.cell(30, 7, f"{weakest['total']} / 25", align="R")
 
     return bytes(pdf.output())
 
@@ -598,166 +598,4 @@ else:
 
     # Calculate pillar scores
     pillar_scores = []
-    all_questions = []
-    for pillar in PILLARS:
-        scores = []
-        for q_idx, question in enumerate(pillar["questions"]):
-            key = f"{pillar['id']}_{q_idx}"
-            score = ratings.get(key, 0)
-            scores.append(score)
-            all_questions.append({
-                "pillar": pillar["name"],
-                "pillar_id": pillar["id"],
-                "short": pillar["short"],
-                "question": question,
-                "score": score,
-                "q_idx": q_idx,
-            })
-        avg = sum(scores) / len(scores) if scores else 0
-        pillar_scores.append({
-            "id": pillar["id"],
-            "name": pillar["name"],
-            "short": pillar["short"],
-            "avg": avg,
-            "scores": scores,
-            "questions": pillar["questions"],
-        })
-
-    overall = sum(ps["avg"] for ps in pillar_scores) / len(pillar_scores)
-
-    sorted_pillars = sorted(pillar_scores, key=lambda x: x["avg"])
-    sorted_questions = sorted(all_questions, key=lambda x: x["score"])
-
-    immediate_attn = sorted_questions[:3]
-
-    weakest_pillar = sorted_pillars[0]
-    weakest_pillar_qs = []
-    for q_idx, q in enumerate(weakest_pillar["questions"]):
-        weakest_pillar_qs.append({
-            "question": q,
-            "score": weakest_pillar["scores"][q_idx],
-        })
-    weakest_pillar_qs.sort(key=lambda x: x["score"])
-    consider_improving = {
-        "pillar": weakest_pillar,
-        "questions": weakest_pillar_qs[:3],
-    }
-
-    strengths = sorted(pillar_scores, key=lambda x: x["avg"], reverse=True)[:3]
-
-    # --- DISPLAY ---
-
-    st.markdown(f"""
-    <div style="text-align: center; margin-bottom: 1rem;">
-        <img src="https://resources.premierleague.com/premierleague/badges/50/t39.png" style="width: 50px;">
-        <p style="color: #9e9a95; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0 4px;">Coach Development Report</p>
-        <h2 style="color: {WOLVES_GOLD} !important; margin: 0; font-weight: 700;">{coach_name}</h2>
-        <p style="color: #9e9a95; font-size: 0.85rem;">{age_group} · {block}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class="score-big">
-        <div class="number" style="color: {get_score_color(overall)};">{overall:.1f}</div>
-        <div class="label">Overall Score / 5.0 · {get_score_band(overall)}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Pillar Breakdown
-    st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">Pillar Breakdown</div>', unsafe_allow_html=True)
-    st.markdown("")
-
-    for ps in pillar_scores:
-        color = get_score_color(ps["avg"])
-        st.markdown(f"""
-        <div class="pillar-card" style="border-left: 4px solid {color};">
-            <div>
-                <div class="p-name">{ps["short"]}</div>
-                <div class="p-band">{get_score_band(ps["avg"])}</div>
-            </div>
-            <div class="p-score" style="color: {color};">{ps["avg"]:.1f}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Immediate Attention
-    st.markdown('<div class="section-header" style="color: #e74c3c;">Immediate Attention</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">Your 3 lowest self-ratings across all pillars</div>', unsafe_allow_html=True)
-
-    for item in immediate_attn:
-        st.markdown(f"""
-        <div class="attention-item" style="border-left: 4px solid #e74c3c;">
-            <div class="attention-dot" style="background: #e74c3c; color: #fff;">{item["score"]}</div>
-            <div>
-                <div class="attention-text">{item["question"]}</div>
-                <div class="attention-pillar">{item["pillar"]}</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Consider Improving
-    st.markdown('<div class="section-header" style="color: #f39c12;">Consider Improving</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="section-sub">3 lowest questions from your weakest pillar: {weakest_pillar["short"]} ({weakest_pillar["avg"]:.1f}/5)</div>', unsafe_allow_html=True)
-
-    for item in consider_improving["questions"]:
-        st.markdown(f"""
-        <div class="attention-item" style="border-left: 4px solid #f39c12;">
-            <div class="attention-dot" style="background: #f39c12; color: #231F20;">{item["score"]}</div>
-            <div>
-                <div class="attention-text">{item["question"]}</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Areas of Strength
-    st.markdown('<div class="section-header" style="color: #27ae60;">Areas of Strength</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">Your three highest-scoring pillars</div>', unsafe_allow_html=True)
-
-    for s in strengths:
-        st.markdown(f"""
-        <div class="strength-item">
-            <div class="s-name">{s["name"]}</div>
-            <div class="s-score" style="color: {get_score_color(s['avg'])};">{s["avg"]:.1f}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Primary Development Area
-    weakest_overall = sorted_pillars[0]
-    wcolor = get_score_color(weakest_overall["avg"])
-    st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">Primary Development Area</div>', unsafe_allow_html=True)
-    st.markdown(f"""
-    <div style="background: #2a2520; border-radius: 12px; padding: 20px 24px; border-left: 5px solid {wcolor}; margin-top: 12px;">
-        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #9e9a95; margin-bottom: 6px;">Your weakest pillar overall</div>
-        <div style="font-size: 1.2rem; font-weight: 700; color: #e8e4e0;">{weakest_overall["name"]}</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: {wcolor}; margin-top: 4px;">{weakest_overall["avg"]:.1f} <span style="font-size: 0.85rem; color: #9e9a95; font-weight: 400;">/ 5.0</span></div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Buttons
-    st.markdown("")
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        pdf_bytes = generate_pdf(
-            coach_name, age_group, block, pillar_scores,
-            immediate_attn, consider_improving, strengths,
-        )
-        filename = f"Coach_Dev_Report_{coach_name.replace(' ', '_')}_{age_group}_{block.replace(' ', '_')}.pdf"
-        st.download_button(
-            label="Download PDF",
-            data=pdf_bytes,
-            file_name=filename,
-            mime="application/pdf",
-            type="primary",
-            use_container_width=True,
-        )
-
-    with col2:
-        if st.button("Edit Responses", use_container_width=True):
-            st.session_state.submitted = False
-            st.rerun()
-
-    with col3:
-        if st.button("New Evaluation", use_container_width=True):
-            st.session_state.submitted = False
-            st.session_state.ratings = {}
-            st.rerun()
+    all
