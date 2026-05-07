@@ -344,7 +344,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(120, 120, 120)
     pdf.set_xy(20, y)
-    pdf.cell(170, 6, f"{age_group} | {block}", align="C")
+    pdf.cell(170, 6, f"{age_group}  |  {block}", align="C")
     y += 7
 
     pdf.set_font("Helvetica", "", 9)
@@ -364,7 +364,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     pdf.cell(85, 14, str(overall), align="R")
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(85, 14, f" / 225 | {get_score_band(overall / 9)}")
+    pdf.cell(85, 14, f"  / 225  |  {get_score_band(overall / 9)}")
     y += 26
 
     # Pillar Breakdown
@@ -598,4 +598,168 @@ else:
 
     # Calculate pillar scores
     pillar_scores = []
-  
+    all_questions = []
+    for pillar in PILLARS:
+        scores = []
+        for q_idx, question in enumerate(pillar["questions"]):
+            key = f"{pillar['id']}_{q_idx}"
+            score = ratings.get(key, 0)
+            scores.append(score)
+            all_questions.append({
+                "pillar": pillar["name"],
+                "pillar_id": pillar["id"],
+                "short": pillar["short"],
+                "question": question,
+                "score": score,
+                "q_idx": q_idx,
+            })
+        avg = sum(scores) / len(scores) if scores else 0
+        total = sum(scores)
+        pillar_scores.append({
+            "id": pillar["id"],
+            "name": pillar["name"],
+            "short": pillar["short"],
+            "avg": avg,
+            "total": total,
+            "scores": scores,
+            "questions": pillar["questions"],
+        })
+
+    overall = sum(ps["total"] for ps in pillar_scores)
+
+    sorted_pillars = sorted(pillar_scores, key=lambda x: x["total"])
+    sorted_questions = sorted(all_questions, key=lambda x: x["score"])
+
+    immediate_attn = sorted_questions[:3]
+
+    weakest_pillar = sorted_pillars[0]
+    weakest_pillar_qs = []
+    for q_idx, q in enumerate(weakest_pillar["questions"]):
+        weakest_pillar_qs.append({
+            "question": q,
+            "score": weakest_pillar["scores"][q_idx],
+        })
+    weakest_pillar_qs.sort(key=lambda x: x["score"])
+    consider_improving = {
+        "pillar": weakest_pillar,
+        "questions": weakest_pillar_qs[:3],
+    }
+
+    strengths = sorted(pillar_scores, key=lambda x: x["total"], reverse=True)[:3]
+
+    # --- DISPLAY ---
+
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 1rem;">
+        <img src="https://resources.premierleague.com/premierleague/badges/50/t39.png" style="width: 50px;">
+        <p style="color: #9e9a95; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0 4px;">Coach Development Report</p>
+        <h2 style="color: {WOLVES_GOLD} !important; margin: 0; font-weight: 700;">{coach_name}</h2>
+        <p style="color: #9e9a95; font-size: 0.85rem;">{age_group} · {block}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="score-big">
+        <div class="number" style="color: {get_score_color(overall / 9)};">{overall}</div>
+        <div class="label">Overall Score / 225 · {get_score_band(overall / 9)}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Pillar Breakdown
+    st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">Pillar Breakdown</div>', unsafe_allow_html=True)
+    st.markdown("")
+
+    for ps in pillar_scores:
+        color = get_score_color(ps["total"])
+        st.markdown(f"""
+        <div class="pillar-card" style="border-left: 4px solid {color};">
+            <div>
+                <div class="p-name">{ps["short"]}</div>
+                <div class="p-band">{get_score_band(ps["total"])}</div>
+            </div>
+            <div class="p-score" style="color: {color};">{ps["total"]} <span style="font-size: 0.7rem; color: #9e9a95;">/ 25</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Immediate Attention
+    st.markdown('<div class="section-header" style="color: #e74c3c;">Immediate Attention</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">Your 3 lowest self-ratings across all pillars</div>', unsafe_allow_html=True)
+
+    for item in immediate_attn:
+        st.markdown(f"""
+        <div class="attention-item" style="border-left: 4px solid #e74c3c;">
+            <div class="attention-dot" style="background: #e74c3c; color: #fff;">{item["score"]}</div>
+            <div>
+                <div class="attention-text">{item["question"]}</div>
+                <div class="attention-pillar">{item["pillar"]}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Consider Improving
+    st.markdown('<div class="section-header" style="color: #f39c12;">Consider Improving</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-sub">3 lowest questions from your weakest pillar: {weakest_pillar["short"]} ({weakest_pillar["total"]}/25)</div>', unsafe_allow_html=True)
+
+    for item in consider_improving["questions"]:
+        st.markdown(f"""
+        <div class="attention-item" style="border-left: 4px solid #f39c12;">
+            <div class="attention-dot" style="background: #f39c12; color: #231F20;">{item["score"]}</div>
+            <div>
+                <div class="attention-text">{item["question"]}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Areas of Strength
+    st.markdown('<div class="section-header" style="color: #27ae60;">Areas of Strength</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">Your three highest-scoring pillars</div>', unsafe_allow_html=True)
+
+    for s in strengths:
+        st.markdown(f"""
+        <div class="strength-item">
+            <div class="s-name">{s["name"]}</div>
+            <div class="s-score" style="color: {get_score_color(s['total'])};">{s["total"]} <span style="font-size: 0.7rem; color: #9e9a95;">/ 25</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Primary Development Area
+    weakest_overall = sorted_pillars[0]
+    wcolor = get_score_color(weakest_overall["total"])
+    st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">Primary Development Area</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="background: #2a2520; border-radius: 12px; padding: 20px 24px; border-left: 5px solid {wcolor}; margin-top: 12px;">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #9e9a95; margin-bottom: 6px;">Your weakest pillar overall</div>
+        <div style="font-size: 1.2rem; font-weight: 700; color: #e8e4e0;">{weakest_overall["name"]}</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: {wcolor}; margin-top: 4px;">{weakest_overall["total"]} <span style="font-size: 0.85rem; color: #9e9a95; font-weight: 400;">/ 25</span></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Buttons
+    st.markdown("")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        pdf_bytes = generate_pdf(
+            coach_name, age_group, block, pillar_scores,
+            immediate_attn, consider_improving, strengths,
+        )
+        filename = f"Coach_Dev_Report_{coach_name.replace(' ', '_')}_{age_group}_{block.replace(' ', '_')}.pdf"
+        st.download_button(
+            label="Download PDF",
+            data=pdf_bytes,
+            file_name=filename,
+            mime="application/pdf",
+            type="primary",
+            use_container_width=True,
+        )
+
+    with col2:
+        if st.button("Edit Responses", use_container_width=True):
+            st.session_state.submitted = False
+            st.rerun()
+
+    with col3:
+        if st.button("New Evaluation", use_container_width=True):
+            st.session_state.submitted = False
+            st.session_state.ratings = {}
+            st.rerun()
