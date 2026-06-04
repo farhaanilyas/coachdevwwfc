@@ -2,6 +2,13 @@ import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
 
+try:
+    import gspread
+    from google.oauth2.service_account import Credentials
+    SHEETS_AVAILABLE = True
+except ImportError:
+    SHEETS_AVAILABLE = False
+
 st.set_page_config(
     page_title="Wolves Coach Development Evaluation",
     page_icon="🐺",
@@ -521,12 +528,59 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     return bytes(pdf.output())
 
 
+# --- GOOGLE SHEETS ---
+
+
+def save_to_sheets(coach_name, age_group, block, pillar_scores, overall, weakest_pillar_name):
+    """Save submission to Google Sheets. Fails silently if not configured."""
+    if not SHEETS_AVAILABLE:
+        return
+    try:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        gc = gspread.authorize(creds)
+        sheet = gc.open(st.secrets["sheet_name"]).sheet1
+
+        # Build row
+        row = [
+            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            coach_name,
+            age_group,
+            block,
+        ]
+        for ps in pillar_scores:
+            row.append(ps["total"])
+        row.append(overall)
+        row.append(weakest_pillar_name)
+
+        # Add headers if sheet is empty
+        existing = sheet.get_all_values()
+        if len(existing) == 0:
+            headers = [
+                "Timestamp", "Coach", "Age Group", "Block",
+            ]
+            for ps in pillar_scores:
+                headers.append(ps["short"])
+            headers.extend(["Overall", "Weakest Pillar"])
+            sheet.append_row(headers)
+
+        sheet.append_row(row)
+    except Exception as e:
+        st.error(f"Sheets error: {e}")
+
+
 # --- APP LOGIC ---
 
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
 if "ratings" not in st.session_state:
     st.session_state.ratings = {}
+if "saved_to_sheets" not in st.session_state:
+    st.session_state.saved_to_sheets = False
 
 # Header
 st.markdown(
@@ -647,6 +701,11 @@ else:
 
     strengths = sorted(pillar_scores, key=lambda x: x["total"], reverse=True)[:3]
 
+    # Save to Google Sheets (once per submission)
+    if not st.session_state.saved_to_sheets:
+        save_to_sheets(coach_name, age_group, block, pillar_scores, overall, sorted_pillars[0]["name"])
+        st.session_state.saved_to_sheets = True
+
     # --- DISPLAY ---
 
     st.markdown(f"""
@@ -762,4 +821,5 @@ else:
         if st.button("New Evaluation", use_container_width=True):
             st.session_state.submitted = False
             st.session_state.ratings = {}
+            st.session_state.saved_to_sheets = False
             st.rerun()
