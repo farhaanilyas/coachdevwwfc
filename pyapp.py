@@ -610,13 +610,13 @@ def save_to_detail_sheet(coach_name, role, age_group, block, pillar_scores):
     """
     Write every individual question score to a per-coach tab in the same
     workbook as the summary. Rows = questions (grouped by pillar), columns = blocks.
-    Resubmitting the same block overwrites that block's column.
-    Fails silently if not configured.
+    Columns A and B always hold the pillar name and question text and are
+    rewritten every submission. Block columns start at C. Resubmitting the
+    same block overwrites that block's column. Fails silently if not configured.
     """
     if not SHEETS_AVAILABLE:
         return
     try:
-        # Per-coach tabs live in the same workbook as the summary tab
         detail_name = st.secrets["sheet_name"]
 
         creds_dict = dict(st.secrets["gcp_service_account"])
@@ -628,61 +628,58 @@ def save_to_detail_sheet(coach_name, role, age_group, block, pillar_scores):
         gc = gspread.authorize(creds)
         book = gc.open(detail_name)
 
-        # Tab name = coach name (Sheets caps tab names at 100 chars, no special chars issues for names)
         tab_title = coach_name.strip()[:100]
         try:
             ws = book.worksheet(tab_title)
         except gspread.exceptions.WorksheetNotFound:
             ws = book.add_worksheet(title=tab_title, rows=80, cols=20)
 
-        existing = ws.get_all_values()
-
-        # Build the fixed label block: Pillar | Question, plus a few header rows
+        # --- Labels (always rewritten) ---
         label_rows = []
         for ps in pillar_scores:
-            for q_idx, q in enumerate(ps["questions"]):
+            for q in ps["questions"]:
                 label_rows.append([ps["name"], q])
+        n_q = len(label_rows)
+        totals_start = n_q + 3  # one blank row after questions
 
-        # First-time setup for this coach's tab
-        if len(existing) == 0:
-            header = ["Pillar", "Question"]
-            ws.update("A1", [header])
-            ws.update(f"A2:B{len(label_rows) + 1}", label_rows)
-            # Totals section below the questions
-            totals_start = len(label_rows) + 3
-            totals_rows = [["PILLAR TOTALS", ""]]
-            for ps in pillar_scores:
-                totals_rows.append([ps["name"], ""])
-            totals_rows.append(["OVERALL", ""])
-            ws.update(f"A{totals_start}:B{totals_start + len(totals_rows) - 1}", totals_rows)
-            existing = ws.get_all_values()
-
-        # Find or create the column for this block
-        header_row = existing[0] if existing else []
-        col_label = block
-        if col_label in header_row:
-            col_idx = header_row.index(col_label) + 1  # 1-based
-        else:
-            col_idx = len(header_row) + 1
-            ws.update_cell(1, col_idx, col_label)
-
-        # Write question scores
-        score_cells = []
-        r = 2
+        totals_labels = [["PILLAR TOTALS", ""]]
         for ps in pillar_scores:
-            for s in ps["scores"]:
-                score_cells.append([s])
-                r += 1
-        ws.update(gspread.utils.rowcol_to_a1(2, col_idx) + ":" + gspread.utils.rowcol_to_a1(len(score_cells) + 1, col_idx), score_cells)
+            totals_labels.append([ps["name"], ""])
+        totals_labels.append(["OVERALL", ""])
 
-        # Write pillar totals + overall
-        totals_start = len(label_rows) + 3
-        total_cells = [[""]]  # "PILLAR TOTALS" header row
+        ws.update(values=[["Pillar", "Question"]], range_name="A1:B1")
+        ws.update(values=label_rows, range_name=f"A2:B{n_q + 1}")
+        ws.update(
+            values=totals_labels,
+            range_name=f"A{totals_start}:B{totals_start + len(totals_labels) - 1}",
+        )
+
+        # --- Find or create this block's column (never before column C) ---
+        header_row = ws.row_values(1)
+        col_idx = None
+        for i, h in enumerate(header_row[2:], start=3):
+            if h.strip() == block:
+                col_idx = i
+                break
+        if col_idx is None:
+            col_idx = max(3, len(header_row) + 1)
+            ws.update_cell(1, col_idx, block)
+
+        col_letter = gspread.utils.rowcol_to_a1(1, col_idx).rstrip("1")
+
+        # --- Question scores ---
+        score_cells = [[sc] for ps in pillar_scores for sc in ps["scores"]]
+        ws.update(values=score_cells, range_name=f"{col_letter}2:{col_letter}{n_q + 1}")
+
+        # --- Pillar totals + overall ---
+        total_cells = [[""]]
         for ps in pillar_scores:
             total_cells.append([ps["total"]])
         total_cells.append([sum(ps["total"] for ps in pillar_scores)])
-        ws.update(gspread.utils.rowcol_to_a1(totals_start, col_idx) + ":" + gspread.utils.rowcol_to_a1(totals_start + len(total_cells) - 1, col_idx), total_cells)
-
+        ws.update(
+            values=total_cells,
+            range_name=f"{col_letter}{totals_start}:{col_letter}{totals_start + len(total_cells) - 1}",
+        )
     except Exception:
         pass  # Fail silently
 
