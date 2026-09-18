@@ -606,6 +606,87 @@ def save_to_sheets(coach_name, role, age_group, block, pillar_scores, overall, w
         pass  # Fail silently so the app still works without Sheets configured
 
 
+def save_to_detail_sheet(coach_name, role, age_group, block, pillar_scores):
+    """
+    Write every individual question score to a per-coach tab in the same
+    workbook as the summary. Rows = questions (grouped by pillar), columns = blocks.
+    Resubmitting the same block overwrites that block's column.
+    Fails silently if not configured.
+    """
+    if not SHEETS_AVAILABLE:
+        return
+    try:
+        # Per-coach tabs live in the same workbook as the summary tab
+        detail_name = st.secrets["sheet_name"]
+
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        gc = gspread.authorize(creds)
+        book = gc.open(detail_name)
+
+        # Tab name = coach name (Sheets caps tab names at 100 chars, no special chars issues for names)
+        tab_title = coach_name.strip()[:100]
+        try:
+            ws = book.worksheet(tab_title)
+        except gspread.exceptions.WorksheetNotFound:
+            ws = book.add_worksheet(title=tab_title, rows=80, cols=20)
+
+        existing = ws.get_all_values()
+
+        # Build the fixed label block: Pillar | Question, plus a few header rows
+        label_rows = []
+        for ps in pillar_scores:
+            for q_idx, q in enumerate(ps["questions"]):
+                label_rows.append([ps["name"], q])
+
+        # First-time setup for this coach's tab
+        if len(existing) == 0:
+            header = ["Pillar", "Question"]
+            ws.update("A1", [header])
+            ws.update(f"A2:B{len(label_rows) + 1}", label_rows)
+            # Totals section below the questions
+            totals_start = len(label_rows) + 3
+            totals_rows = [["PILLAR TOTALS", ""]]
+            for ps in pillar_scores:
+                totals_rows.append([ps["name"], ""])
+            totals_rows.append(["OVERALL", ""])
+            ws.update(f"A{totals_start}:B{totals_start + len(totals_rows) - 1}", totals_rows)
+            existing = ws.get_all_values()
+
+        # Find or create the column for this block
+        header_row = existing[0] if existing else []
+        col_label = block
+        if col_label in header_row:
+            col_idx = header_row.index(col_label) + 1  # 1-based
+        else:
+            col_idx = len(header_row) + 1
+            ws.update_cell(1, col_idx, col_label)
+
+        # Write question scores
+        score_cells = []
+        r = 2
+        for ps in pillar_scores:
+            for s in ps["scores"]:
+                score_cells.append([s])
+                r += 1
+        ws.update(gspread.utils.rowcol_to_a1(2, col_idx) + ":" + gspread.utils.rowcol_to_a1(len(score_cells) + 1, col_idx), score_cells)
+
+        # Write pillar totals + overall
+        totals_start = len(label_rows) + 3
+        total_cells = [[""]]  # "PILLAR TOTALS" header row
+        for ps in pillar_scores:
+            total_cells.append([ps["total"]])
+        total_cells.append([sum(ps["total"] for ps in pillar_scores)])
+        ws.update(gspread.utils.rowcol_to_a1(totals_start, col_idx) + ":" + gspread.utils.rowcol_to_a1(totals_start + len(total_cells) - 1, col_idx), total_cells)
+
+    except Exception:
+        pass  # Fail silently
+
+
 # --- APP LOGIC ---
 
 if "submitted" not in st.session_state:
@@ -744,6 +825,7 @@ else:
     # Save to Google Sheets (once per submission)
     if not st.session_state.saved_to_sheets:
         save_to_sheets(coach_name, role, age_group, block, pillar_scores, overall, sorted_pillars[0]["name"])
+        save_to_detail_sheet(coach_name, role, age_group, block, pillar_scores)
         st.session_state.saved_to_sheets = True
 
     # --- DISPLAY ---
