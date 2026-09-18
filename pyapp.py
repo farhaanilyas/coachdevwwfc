@@ -134,6 +134,38 @@ PILLARS = [
 
 AGE_GROUPS = ["U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U18", "U21"]
 BLOCKS = ["Block 1", "Block 2", "Block 3", "Block 4", "Block 5", "Block 6"]
+ROLES = ["Outfield", "Goalkeeper"]
+
+# Goalkeeper-specific questions that replace the outfield versions for pillars 3 and 7
+GK_QUESTIONS = {
+    "match_impact": [
+        "How effectively do you prepare the goalkeeper to execute the Wolves Goalkeeper game style in matches?",
+        "How well do you observe and interpret the game to identify key moments for intervention?",
+        "How well do you support the MDT to make in game decisions (build up, defensive structure, set pieces)?",
+        "How clearly do goalkeepers transfer training concepts into match performance?",
+        "How consistently does the goalkeeper show progress in match behaviours and decision-making over time?",
+    ],
+    "tactical": [
+        "How much do you understand the tactical principles of a Wolverhampton goalkeeper in any shape?",
+        "How is your knowledge of different formations / shapes?",
+        "How well do you support the Lead Coaches to understand the role of the goalkeeper?",
+        "How much do your tactical principles mirror those of the Wolves Goalkeeper Game Model?",
+        "How good are you at delivering a tactical plan off the pitch (build up + set plays)?",
+    ],
+}
+
+
+def get_pillars_for_role(role):
+    """Return the pillar list with GK questions swapped in if role is Goalkeeper."""
+    if role != "Goalkeeper":
+        return PILLARS
+    result = []
+    for p in PILLARS:
+        if p["id"] in GK_QUESTIONS:
+            result.append({**p, "questions": GK_QUESTIONS[p["id"]]})
+        else:
+            result.append(p)
+    return result
 RATING_LABELS = {1: "Significant Gap", 2: "Developing", 3: "Competent", 4: "Strong", 5: "Exceptional"}
 
 
@@ -312,7 +344,7 @@ st.markdown(
 # --- PDF GENERATION ---
 
 
-def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, consider_improving, strengths):
+def generate_pdf(coach_name, role, age_group, block, pillar_scores, immediate_attn, consider_improving, strengths):
     pdf = FPDF()
     pdf.set_auto_page_break(auto=False)
     pdf.add_page()
@@ -351,7 +383,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
     pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(120, 120, 120)
     pdf.set_xy(20, y)
-    pdf.cell(170, 6, f"{age_group}  |  {block}", align="C")
+    pdf.cell(170, 6, f"{role}  |  {age_group}  |  {block}", align="C")
     y += 7
 
     pdf.set_font("Helvetica", "", 9)
@@ -531,7 +563,7 @@ def generate_pdf(coach_name, age_group, block, pillar_scores, immediate_attn, co
 # --- GOOGLE SHEETS ---
 
 
-def save_to_sheets(coach_name, age_group, block, pillar_scores, overall, weakest_pillar_name):
+def save_to_sheets(coach_name, role, age_group, block, pillar_scores, overall, weakest_pillar_name):
     """Save submission to Google Sheets. Fails silently if not configured."""
     if not SHEETS_AVAILABLE:
         return
@@ -549,6 +581,7 @@ def save_to_sheets(coach_name, age_group, block, pillar_scores, overall, weakest
         row = [
             datetime.now().strftime("%Y-%m-%d %H:%M"),
             coach_name,
+            role,
             age_group,
             block,
         ]
@@ -561,7 +594,7 @@ def save_to_sheets(coach_name, age_group, block, pillar_scores, overall, weakest
         existing = sheet.get_all_values()
         if len(existing) == 0:
             headers = [
-                "Timestamp", "Coach", "Age Group", "Block",
+                "Timestamp", "Coach", "Role", "Age Group", "Block",
             ]
             for ps in pillar_scores:
                 headers.append(ps["short"])
@@ -569,8 +602,8 @@ def save_to_sheets(coach_name, age_group, block, pillar_scores, overall, weakest
             sheet.append_row(headers)
 
         sheet.append_row(row)
-    except Exception as e:
-        st.error(f"Sheets error: {e}")
+    except Exception:
+        pass  # Fail silently so the app still works without Sheets configured
 
 
 # --- APP LOGIC ---
@@ -596,20 +629,24 @@ st.markdown(
 
 if not st.session_state.submitted:
     # --- INPUT FORM ---
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         coach_name = st.text_input("Coach Name")
     with col2:
-        age_group = st.selectbox("Age Group", [""] + AGE_GROUPS, format_func=lambda x: "Select" if x == "" else x)
+        role = st.selectbox("Role", [""] + ROLES, format_func=lambda x: "Select" if x == "" else x)
+    col3, col4 = st.columns(2)
     with col3:
+        age_group = st.selectbox("Age Group", [""] + AGE_GROUPS, format_func=lambda x: "Select" if x == "" else x)
+    with col4:
         block = st.selectbox("Block", [""] + BLOCKS, format_func=lambda x: "Select" if x == "" else x)
 
-    if coach_name and age_group and block:
+    if coach_name and role and age_group and block:
         st.divider()
 
         form_complete = True
+        active_pillars = get_pillars_for_role(role)
 
-        for p_idx, pillar in enumerate(PILLARS):
+        for p_idx, pillar in enumerate(active_pillars):
             st.markdown(f'<div class="section-header" style="color: {WOLVES_GOLD};">{pillar["name"]}</div>', unsafe_allow_html=True)
             st.caption("Rate yourself 1 to 5 for each question")
 
@@ -636,24 +673,27 @@ if not st.session_state.submitted:
         ):
             st.session_state.submitted = True
             st.session_state.coach_name = coach_name
+            st.session_state.role = role
             st.session_state.age_group = age_group
             st.session_state.block = block
             st.rerun()
 
     else:
-        st.info("Enter your name, age group, and block to begin.")
+        st.info("Enter your name, role, age group, and block to begin.")
 
 else:
     # --- RESULTS ---
     coach_name = st.session_state.coach_name
+    role = st.session_state.get("role", "Outfield")
     age_group = st.session_state.age_group
     block = st.session_state.block
     ratings = st.session_state.ratings
+    active_pillars = get_pillars_for_role(role)
 
     # Calculate pillar scores
     pillar_scores = []
     all_questions = []
-    for pillar in PILLARS:
+    for pillar in active_pillars:
         scores = []
         for q_idx, question in enumerate(pillar["questions"]):
             key = f"{pillar['id']}_{q_idx}"
@@ -703,7 +743,7 @@ else:
 
     # Save to Google Sheets (once per submission)
     if not st.session_state.saved_to_sheets:
-        save_to_sheets(coach_name, age_group, block, pillar_scores, overall, sorted_pillars[0]["name"])
+        save_to_sheets(coach_name, role, age_group, block, pillar_scores, overall, sorted_pillars[0]["name"])
         st.session_state.saved_to_sheets = True
 
     # --- DISPLAY ---
@@ -713,7 +753,7 @@ else:
         <img src="https://resources.premierleague.com/premierleague/badges/50/t39.png" style="width: 50px;">
         <p style="color: #9e9a95; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0 4px;">Coach Development Report</p>
         <h2 style="color: {WOLVES_GOLD} !important; margin: 0; font-weight: 700;">{coach_name}</h2>
-        <p style="color: #9e9a95; font-size: 0.85rem;">{age_group} · {block}</p>
+        <p style="color: #9e9a95; font-size: 0.85rem;">{role} · {age_group} · {block}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -799,10 +839,10 @@ else:
 
     with col1:
         pdf_bytes = generate_pdf(
-            coach_name, age_group, block, pillar_scores,
+            coach_name, role, age_group, block, pillar_scores,
             immediate_attn, consider_improving, strengths,
         )
-        filename = f"Coach_Dev_Report_{coach_name.replace(' ', '_')}_{age_group}_{block.replace(' ', '_')}.pdf"
+        filename = f"Coach_Dev_Report_{coach_name.replace(' ', '_')}_{role}_{age_group}_{block.replace(' ', '_')}.pdf"
         st.download_button(
             label="Download PDF",
             data=pdf_bytes,
