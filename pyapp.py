@@ -690,8 +690,8 @@ if "submitted" not in st.session_state:
     st.session_state.submitted = False
 if "ratings" not in st.session_state:
     st.session_state.ratings = {}
-if "saved_to_sheets" not in st.session_state:
-    st.session_state.saved_to_sheets = False
+if "saved_key" not in st.session_state:
+    st.session_state.saved_key = ""
 
 # Header
 st.markdown(
@@ -820,10 +820,12 @@ else:
     strengths = sorted(pillar_scores, key=lambda x: x["total"], reverse=True)[:3]
 
     # Save to Google Sheets (once per submission)
-    if not st.session_state.saved_to_sheets:
+    ratings_sig = "|".join(str(sc) for ps in pillar_scores for sc in ps["scores"])
+    submission_key = f"{coach_name.strip().lower()}|{role}|{age_group}|{block}|{ratings_sig}"
+    if st.session_state.saved_key != submission_key:
         save_to_sheets(coach_name, role, age_group, block, pillar_scores, overall, sorted_pillars[0]["name"])
         save_to_detail_sheet(coach_name, role, age_group, block, pillar_scores)
-        st.session_state.saved_to_sheets = True
+        st.session_state.saved_key = submission_key
 
     # --- DISPLAY ---
 
@@ -940,5 +942,9 @@ else:
         if st.button("New Evaluation", use_container_width=True):
             st.session_state.submitted = False
             st.session_state.ratings = {}
-            st.session_state.saved_to_sheets = False
+            st.session_state.saved_key = ""
+            # Clear slider widget state so the next coach starts blank
+            for p in PILLARS:
+                for i in range(len(p["questions"])):
+                    st.session_state.pop(f"{p['id']}_{i}", None)
             st.rerun()
